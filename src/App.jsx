@@ -11,54 +11,45 @@ function App() {
   useEffect(() => {
     try {
       if (typeof window.Telegram === "undefined" || !window.Telegram.WebApp) {
-        debugLog("❌ Telegram.WebApp mavjud emas. Brauzer rejimida fake user ishlatilmoqda.", true);
+        debugLog("❌ Telegram.WebApp mavjud emas. Bu xabar agar sen brauzerda ochgan bo‘lsang chiqadi.", true);
 
-        // Test rejimi uchun fake user
-        const fakeUser = {
-          id: 123456789,
+        // Test uchun fake user
+        setUser({
+          id: 111111,
           first_name: "Test",
-          last_name: "User",
           username: "fakeuser",
-          language_code: "en",
-        };
-        setUser(fakeUser);
-        debugLog("✅ Fake user yuklandi (test rejimi).");
+        });
+        debugLog("✅ Fake user yuklandi.");
       } else {
         const tg = window.Telegram.WebApp;
         tg.ready();
 
+        debugLog("✅ Telegram WebApp obyekt topildi.");
+
         const userData = tg.initDataUnsafe?.user;
         if (userData) {
           setUser(userData);
-          debugLog("✅ Foydalanuvchi ma'lumotlari olindi (Telegram).");
+          debugLog("✅ Telegram foydalanuvchi ma'lumotlari olindi.");
         } else {
-          debugLog("⚠️ Foydalanuvchi ma'lumotlari mavjud emas!", true);
+          debugLog("⚠️ Telegram foydalanuvchi ma'lumotlari yo‘q.", true);
         }
-
-        debugLog("Telegram WebApp obyektlari yuklandi.");
       }
     } catch (err) {
-      debugLog("Xatolik: " + err.message, true);
+      debugLog("❌ Xatolik: " + err.message, true);
     }
   }, []);
 
   return (
     <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
-      <h1>Telegram Mini App Test</h1>
-      <p>Quyida foydalanuvchi ma'lumotlari chiqadi:</p>
+      <h1>Telegram Mini App</h1>
+
+      <h3>👤 User Data:</h3>
       <pre>{user ? JSON.stringify(user, null, 2) : "Ma'lumot yo'q"}</pre>
 
-      <div
-        style={{
-          background: "#f5f5f5",
-          border: "1px solid #ccc",
-          padding: "10px",
-          marginTop: "20px",
-        }}
-      >
-        <h3>Debug log:</h3>
-        {logs.map((log, index) => (
-          <p key={index} style={{ color: log.isError ? "red" : "black" }}>
+      <h3>🪲 Debug Logs:</h3>
+      <div style={{ background: "#f9f9f9", border: "1px solid #ccc", padding: "10px" }}>
+        {logs.map((log, i) => (
+          <p key={i} style={{ color: log.isError ? "red" : "black" }}>
             {log.message}
           </p>
         ))}
