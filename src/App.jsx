@@ -1,21 +1,44 @@
 import React, { useEffect, useState } from "react";
 
+// Debug component – xatolik va loglarni ekranda ko‘rsatadi
+function Debug({ title, log }) {
+  return (
+    <div style={{ background: "#111", color: "#0f0", padding: "10px", margin: "10px 0", borderRadius: "5px" }}>
+      <h4>{title}</h4>
+      <pre>{JSON.stringify(log, null, 2)}</pre>
+    </div>
+  );
+}
+
 function App() {
+  const [telegramUser, setTelegramUser] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [telegramUser, setTelegramUser] = useState(null);
+  const [error, setError] = useState(null);
 
+  // Telegramdan userni olish
   useEffect(() => {
-    // Telegram WebApp API orqali userni olish
-    const tg = window.Telegram.WebApp;
+    try {
+      const tg = window.Telegram ? window.Telegram.WebApp : null;
 
-    if (tg.initDataUnsafe?.user) {
-      setTelegramUser(tg.initDataUnsafe.user);
-    } else {
-      console.warn("Telegram user ma'lumotlari topilmadi!");
+      if (tg?.initDataUnsafe?.user) {
+        setTelegramUser(tg.initDataUnsafe.user);
+      } else {
+        console.warn("Telegram user ma'lumotlari topilmadi, mock ishlatyapman.");
+        // Mock user (browserda test qilish uchun)
+        setTelegramUser({
+          id: "5130310327",
+          first_name: "Test",
+          last_name: "User",
+          username: "testuser",
+        });
+      }
+    } catch (err) {
+      setError("Telegram WebApp aniqlanmadi!");
     }
   }, []);
 
+  // API’dan ma’lumot olish
   useEffect(() => {
     if (!telegramUser) return;
 
@@ -26,8 +49,8 @@ function App() {
         );
         const result = await response.json();
         setData(result.data);
-      } catch (error) {
-        console.error("Xatolik:", error);
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -36,34 +59,42 @@ function App() {
     fetchData();
   }, [telegramUser]);
 
-  if (!telegramUser) {
-    return <h2 style={{ textAlign: "center" }}>Telegram orqali oching ❗</h2>;
+  if (loading) {
+    return <h2 style={{ textAlign: "center" }}>⏳ Yuklanmoqda...</h2>;
   }
 
-  if (loading) {
-    return <h2 style={{ textAlign: "center" }}>Yuklanmoqda...</h2>;
+  if (error) {
+    return (
+      <div style={{ color: "red", textAlign: "center" }}>
+        <h2>Xatolik yuz berdi!</h2>
+        <p>{error}</p>
+        <Debug title="Telegram User" log={telegramUser} />
+        <Debug title="API Javobi" log={data} />
+      </div>
+    );
   }
 
   if (!data) {
-    return <h2 style={{ textAlign: "center" }}>Ma'lumot topilmadi!</h2>;
+    return <h2 style={{ textAlign: "center" }}>❌ Ma'lumot topilmadi!</h2>;
   }
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
-      <h1 style={{ textAlign: "center" }}>Foydalanuvchi loyihalari</h1>
+      <h1 style={{ textAlign: "center" }}>📋 Foydalanuvchi loyihalari</h1>
+
       <p>
-        <strong>User ID:</strong> {telegramUser.id}
+        <strong>👤 User ID:</strong> {telegramUser.id}
       </p>
       <p>
-        <strong>Ism:</strong> {telegramUser.first_name}{" "}
+        <strong>👤 Ism:</strong> {telegramUser.first_name}{" "}
         {telegramUser.last_name || ""}
       </p>
       <p>
-        <strong>Telegram:</strong> @{telegramUser.username}
+        <strong>🔗 Telegram:</strong> @{telegramUser.username}
       </p>
       <hr />
 
-      <h2>Loyihalar ro'yxati:</h2>
+      <h2>📂 Loyihalar:</h2>
       {data.projects.length === 0 ? (
         <p>Hozircha loyiha mavjud emas.</p>
       ) : (
@@ -80,26 +111,29 @@ function App() {
           >
             <h3>{project.object_name}</h3>
             <p>
-              <strong>Manzil:</strong> {project.address}
+              <strong>📍 Manzil:</strong> {project.address}
             </p>
             <p>
-              <strong>Status:</strong> {project.status}
+              <strong>📌 Status:</strong> {project.status}
             </p>
             <p>
-              <strong>Qo‘shimcha telefonlar:</strong>{" "}
-              {project.phones.join(", ")}
+              <strong>📞 Telefonlar:</strong> {project.phones.join(", ")}
             </p>
             <p>
-              <strong>Yaratilgan sana:</strong>{" "}
+              <strong>📅 Sana:</strong>{" "}
               {new Date(project.created_at).toLocaleString()}
             </p>
             <p>
-              <strong>Tasdiqlanganmi:</strong>{" "}
-              {project.isApproved ? "✅ Ha" : "❌ Yo‘q"}
+              <strong>✅ Tasdiqlanganmi:</strong>{" "}
+              {project.isApproved ? "Ha ✅" : "Yo‘q ❌"}
             </p>
           </div>
         ))
       )}
+
+      {/* Debug ma'lumotlarni chiqarish */}
+      <Debug title="Telegram User" log={telegramUser} />
+      <Debug title="API Javobi" log={data} />
     </div>
   );
 }
