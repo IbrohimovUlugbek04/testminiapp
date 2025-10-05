@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const App = () => {
+function App() {
   const [user, setUser] = useState(null);
   const [logs, setLogs] = useState([]);
 
@@ -11,7 +11,18 @@ const App = () => {
   useEffect(() => {
     try {
       if (typeof window.Telegram === "undefined" || !window.Telegram.WebApp) {
-        debugLog("❌ Telegram.WebApp mavjud emas. Mini App faqat Telegram ichida ishlaydi!", true);
+        debugLog("❌ Telegram.WebApp mavjud emas. Brauzer rejimida fake user ishlatilmoqda.", true);
+
+        // Test rejimi uchun fake user
+        const fakeUser = {
+          id: 123456789,
+          first_name: "Test",
+          last_name: "User",
+          username: "fakeuser",
+          language_code: "en",
+        };
+        setUser(fakeUser);
+        debugLog("✅ Fake user yuklandi (test rejimi).");
       } else {
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -19,7 +30,7 @@ const App = () => {
         const userData = tg.initDataUnsafe?.user;
         if (userData) {
           setUser(userData);
-          debugLog("✅ Foydalanuvchi ma'lumotlari olindi.");
+          debugLog("✅ Foydalanuvchi ma'lumotlari olindi (Telegram).");
         } else {
           debugLog("⚠️ Foydalanuvchi ma'lumotlari mavjud emas!", true);
         }
@@ -54,6 +65,6 @@ const App = () => {
       </div>
     </div>
   );
-};
+}
 
 export default App;
